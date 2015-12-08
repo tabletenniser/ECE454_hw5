@@ -68,11 +68,11 @@ game_of_life (char* outboard,
             const int jLDA = j*LDA;
             const int jeLDA = jeast*LDA;            
         	for (i = 0; i < nrows; i++){
-                const int inorth = mod (i-1, nrows);
-                const int isouth = mod (i+1, nrows);
                 // dead becomes alive
                 //if ((inboard[jLDA+i] & (1<<4)) == 0 && (inboard[jLDA+i] & 3) == 3){
-                if (inboard[jLDA+i] == 0x3){                
+                if (inboard[jLDA+i] == 0x3){
+                	const int inorth = mod (i-1, nrows);
+                	const int isouth = mod (i+1, nrows);          
                 	outboard[jLDA+i] = outboard[jLDA+i] | (1<<4);
                 	outboard[jwLDA+inorth]++;
                 	outboard[jLDA+inorth]++;
@@ -85,7 +85,9 @@ game_of_life (char* outboard,
                 }
                 // live becomes dead
                 //else if ((inboard[jLDA+i] & (1<<4)) != 0 && (inboard[jLDA+i] & 7) > 3 && (inboard[jLDA+i] & 7) < 2){
-                else if (inboard[jLDA+i] >= 0x10 && (inboard[jLDA+i] <= 0x11 || inboard[jLDA+i] >= 0x14)){                	
+                else if (inboard[jLDA+i] >= 0x10 && (inboard[jLDA+i] <= 0x11 || inboard[jLDA+i] >= 0x14)){                 	
+                	const int inorth = mod (i-1, nrows);
+                	const int isouth = mod (i+1, nrows);               	
                 	outboard[jLDA+i] = outboard[jLDA+i] & (~(1<<4));
 					outboard[jwLDA+inorth]--;
                 	outboard[jLDA+inorth]--;

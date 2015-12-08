@@ -51,7 +51,6 @@ void game_of_life_boundary (int row_index, char* outboard,
         i = row_index;
 
         // dead becomes alive
-        //if ((inboard[jLDA+i] & (1<<4)) == 0 && (inboard[jLDA+i] & 3) == 3){
         if (inboard[jLDA+i] == 0x3){
         	const int inorth = mod (i-1, nrows);
         	const int isouth = mod (i+1, nrows);
@@ -66,7 +65,6 @@ void game_of_life_boundary (int row_index, char* outboard,
         	outboard[jeLDA+isouth]++;
         }
         // live becomes dead
-        //else if ((inboard[jLDA+i] & (1<<4)) != 0 && (inboard[jLDA+i] & 7) > 3 && (inboard[jLDA+i] & 7) < 2){
         else if (inboard[jLDA+i] >= 0x10 && (inboard[jLDA+i] <= 0x11 || inboard[jLDA+i] >= 0x14)){                 	
         	const int inorth = mod (i-1, nrows);
         	const int isouth = mod (i+1, nrows);
@@ -78,8 +76,7 @@ void game_of_life_boundary (int row_index, char* outboard,
         	outboard[jeLDA+i]--;
         	outboard[jwLDA+isouth]--;
         	outboard[jLDA+isouth]--;
-        	outboard[jeLDA+isouth]--;
-        
+        	outboard[jeLDA+isouth]--;        
         }
     }
     //SWAP_BOARDS( outboard, inboard );
@@ -202,20 +199,20 @@ game_of_life (char* outboard,
     	// Copy outboard to inboard.
     	memmove (inboard, outboard, nrows * ncols * sizeof (char));
     	start_row_index = 0;
+        for (i = 0; i < NUM_OF_THREADS; i++) {
+            thread_p[i].inboard      =       inboard; // All threads opperate on the same board
+            thread_p[i].outboard     =       outboard;
+            thread_p[i].ncols        =       ncols;   // All threads use the same overall read bounds
+            thread_p[i].nrows        =       nrows;
+            thread_p[i].start_row  =       start_row_index; // Defines Start segment
+            thread_p[i].end_row =  start_row_index+nrows/NUM_OF_THREADS;
+            game_of_life_boundary(start_row_index, outboard, inboard, nrows, ncols);
+            game_of_life_boundary(thread_p[i].end_row-1, outboard, inboard, nrows, ncols);
+            start_row_index += nrows/NUM_OF_THREADS;
+        }
 
 	  	for(i=0;i<NUM_OF_THREADS;i++) {
-	  	  thread_p[i].inboard      =       inboard; // All threads opperate on the same board
-	  	  thread_p[i].outboard     =       outboard;
-	  	  thread_p[i].ncols        =       ncols;   // All threads use the same overall read bounds
-	  	  thread_p[i].nrows        =       nrows;
-	  	  thread_p[i].start_row  =       start_row_index; // Defines Start segment
-	  	  thread_p[i].end_row =  start_row_index+nrows/NUM_OF_THREADS;
-
-	  		game_of_life_boundary(start_row_index, outboard, inboard, nrows, ncols);
-			game_of_life_boundary(thread_p[i].end_row-1, outboard, inboard, nrows, ncols);
-
 	  	  pthread_create(&threads[i], NULL, game_of_life_thread, (void*) &thread_p[i]);
-	  	  start_row_index += nrows/NUM_OF_THREADS;
 	  	}
 
 	  	for (i=0; i<NUM_OF_THREADS; i++){
